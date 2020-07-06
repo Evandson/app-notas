@@ -4,9 +4,9 @@ import 'package:path/path.dart';
 
 class AnotacaoHelper {
 
+  static final String tabela = "anotacao";
   static final AnotacaoHelper _anotacaoHelper = AnotacaoHelper._internal();
   Database _db;
-  static final String nomeTabela = "anotacao";
 
   factory AnotacaoHelper(){
     return _anotacaoHelper;
@@ -16,7 +16,8 @@ class AnotacaoHelper {
   }
 
   get db async {
-    if(_db != null){
+
+    if( _db != null ){
       return _db;
     }else{
       _db = await inicializarDB();
@@ -25,22 +26,40 @@ class AnotacaoHelper {
   }
 
   _onCreate(Database db, int version) async {
-    String sql = "CREATE TABLE $nomeTabela o (id INTEGER PRIMARY KEY AUTOINCREMENT, titulo VARCHAR, descricao TEXT, data DATETIME)";
+
+    String sql = "CREATE TABLE $tabela ("
+        "id INTEGER PRIMARY KEY AUTOINCREMENT, "
+        "titulo VARCHAR, "
+        "descricao TEXT, "
+        "data DATETIME)";
     await db.execute(sql);
+
   }
 
   inicializarDB() async {
+
     final caminhoBancoDados = await getDatabasesPath();
-    final localBancoDados = join(caminhoBancoDados, "banco_anotacoes.db");
-    
-    var db = await openDatabase(localBancoDados, version: 1, onCreate: _onCreate);
-    
+    final localBancoDados = join(caminhoBancoDados, "minhas_anotacoes.db");
+
+    var db = await openDatabase(localBancoDados, version: 1, onCreate: _onCreate );
+    return db;
+
   }
 
   Future<int> salvarAnotacao(Anotacao anotacao) async {
+
     var dados = await db;
-    int resposta = await dados.insert(nomeTabela, anotacao.toMap() );
+    int resposta = await dados.insert(tabela, anotacao.toMap() );
     return resposta;
+
   }
 
+  listarAnotacoes() async {
+
+    var dados = await db;
+    String sql = "SELECT * FROM $tabela ORDER BY data DESC ";
+    List anotacoes = await dados.rawQuery( sql );
+    return anotacoes;
+
+  }
 }
