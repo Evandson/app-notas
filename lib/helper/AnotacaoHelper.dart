@@ -62,4 +62,15 @@ class AnotacaoHelper {
     return anotacoes;
 
   }
+
+  Future<int> atulizarAnotacao(Anotacao anotacao) async{
+    var dados = await db;
+    return await dados.update(
+      tabela,
+      anotacao.toMap(),
+      where: "id = ?",
+      whereArgs: [anotacao.id]
+    );
+  }
+
 }

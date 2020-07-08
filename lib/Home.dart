@@ -16,13 +16,24 @@ class _HomeState extends State<Home> {
   var _db = AnotacaoHelper();
   List<Anotacao> _anotacoes = List<Anotacao>();
 
-  _cadastro(){
+  _cadastro( {Anotacao anotacao} ){
+
+    String texto = "";
+    if(anotacao == null){//salvar
+      _tituloController.text = "";
+      _descricaoController.text = "";
+      texto = "Salvar";
+    }else{//atualizar
+      _tituloController.text = anotacao.titulo;
+      _descricaoController.text = anotacao.descricao;
+      texto = "Atualizar";
+    }
 
     showDialog(
         context: context,
         builder: (context){
           return AlertDialog(
-            title: Text("Criar anotação"),
+            title: Text("$texto anotação"),
             content: Column(
               mainAxisSize: MainAxisSize.min,
               children: <Widget>[
@@ -51,10 +62,10 @@ class _HomeState extends State<Home> {
               FlatButton(
                   onPressed: (){
 
-                    _salvarAnotacao();
+                    _salvarAtualizarAnotacao(anotacaoEsc: anotacao);
                     Navigator.pop(context);
                   },
-                  child: Text("Salvar")
+                  child: Text(texto)
               )
             ],
           );
@@ -65,7 +76,7 @@ class _HomeState extends State<Home> {
   _formatData(String data){
     initializeDateFormatting("pt_BR");
 
-    var f = DateFormat("dd/MM/y - HH:mm");
+    var f = DateFormat("dd/MM/yy");
     //var f = DateFormat.yMd("pt_BR");
 
     DateTime dataConvertida = DateTime.parse(data);
@@ -94,13 +105,20 @@ class _HomeState extends State<Home> {
 
   }
 
-  _salvarAnotacao() async {
+  _salvarAtualizarAnotacao({Anotacao anotacaoEsc}) async {
 
     String titulo = _tituloController.text;
     String descricao = _descricaoController.text;
 
-    Anotacao anotacao = Anotacao(titulo, descricao, DateTime.now().toString() );
-    int resultado = await _db.salvarAnotacao( anotacao );
+    if (anotacaoEsc == null) {//salvar
+      Anotacao anotacao = Anotacao(titulo, descricao, DateTime.now().toString() );
+      int resultado = await _db.salvarAnotacao(anotacao);
+    }else{//atualizar
+      anotacaoEsc.titulo = titulo;
+      anotacaoEsc.descricao = descricao;
+      anotacaoEsc.data = DateTime.now().toString();
+      int resultado = await _db.atulizarAnotacao(anotacaoEsc);
+    }
 
     _tituloController.clear();
     _descricaoController.clear();
@@ -135,8 +153,32 @@ class _HomeState extends State<Home> {
                     return Card(
                       child: ListTile(
                         title: Text(anotacao.titulo, style: TextStyle(fontSize: 18),),
-                        subtitle: Text(anotacao.descricao) ,
-                        trailing: Text(_formatData(anotacao.data), style: TextStyle(fontSize: 12),),
+                        subtitle: Text("${_formatData(anotacao.data)} - ${anotacao.descricao}") ,
+                        //trailing: Text(_formatData(anotacao.data), style: TextStyle(fontSize: 10),),
+                        trailing: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: <Widget>[
+                            GestureDetector(
+                              onTap: (){
+                                _cadastro(anotacao: anotacao );
+                              },
+                              child: Padding(padding: EdgeInsets.only(right: 16),
+                              child: Icon(
+                                Icons.edit,
+                                color: Colors.green,
+                              ),),
+                            ),
+                            GestureDetector(
+                              onTap: (){
+                              },
+                              child: Padding(padding: EdgeInsets.only(right: 0),
+                                child: Icon(
+                                  Icons.delete,
+                                  color: Colors.red,
+                                ),),
+                            )
+                          ],
+                        ),
 
                       ),
                     );
