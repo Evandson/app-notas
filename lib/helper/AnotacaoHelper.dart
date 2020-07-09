@@ -64,12 +64,23 @@ class AnotacaoHelper {
   }
 
   Future<int> atulizarAnotacao(Anotacao anotacao) async{
+
     var dados = await db;
     return await dados.update(
-      tabela,
-      anotacao.toMap(),
-      where: "id = ?",
-      whereArgs: [anotacao.id]
+        tabela,
+        anotacao.toMap(),
+        where: "id = ?",
+        whereArgs: [anotacao.id]
+    );
+  }
+
+  Future<int> excluirAnotacao(int id) async {
+
+    var dados = await db;
+    return await dados.delete(
+        tabela,
+        where: "id = ?",
+        whereArgs: [id]
     );
   }
 

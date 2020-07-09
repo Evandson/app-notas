@@ -73,6 +73,34 @@ class _HomeState extends State<Home> {
     );
   }
 
+  _confirmarExcluir( {Anotacao anotacao} ){
+    showDialog(
+        context: context,
+        builder: (context){
+          return AlertDialog(
+            title: Text("Deseja excluir anotação?"),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+            ),
+            actions: <Widget>[
+              FlatButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: Text("Cancelar")
+              ),
+              FlatButton(
+                  onPressed: (){
+
+                    _excluirAnotacao(anotacao.id);
+                    Navigator.pop(context);
+                  },
+                  child: Text("Excluir", style: TextStyle(color: Colors.red),)
+              )
+            ],
+          );
+        }
+    );
+  }
+
   _formatData(String data){
     initializeDateFormatting("pt_BR");
 
@@ -127,6 +155,14 @@ class _HomeState extends State<Home> {
 
   }
 
+  _excluirAnotacao(int id) async {
+
+    await _db.excluirAnotacao(id);
+
+    _listarAnotacoes();
+    
+  }
+
   @override
   void initState() {
     super.initState();
@@ -163,13 +199,15 @@ class _HomeState extends State<Home> {
                                 _cadastro(anotacao: anotacao );
                               },
                               child: Padding(padding: EdgeInsets.only(right: 16),
-                              child: Icon(
-                                Icons.edit,
-                                color: Colors.green,
-                              ),),
+                                child: Icon(
+                                  Icons.edit,
+                                  color: Colors.green,
+                                ),),
                             ),
                             GestureDetector(
                               onTap: (){
+                                _confirmarExcluir(anotacao: anotacao);
+                                //_excluirAnotacao(anotacao.id);
                               },
                               child: Padding(padding: EdgeInsets.only(right: 0),
                                 child: Icon(
@@ -182,7 +220,6 @@ class _HomeState extends State<Home> {
 
                       ),
                     );
-
                   }
               )
           )
