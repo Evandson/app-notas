@@ -73,7 +73,7 @@ class _HomeState extends State<Home> {
     );
   }
 
-  _confirmarExcluir( {Anotacao anotacao} ){
+  /*_confirmarExcluir( {Anotacao anotacao} ){
     showDialog(
         context: context,
         builder: (context){
@@ -99,7 +99,7 @@ class _HomeState extends State<Home> {
           );
         }
     );
-  }
+  }*/
 
   _formatData(String data){
     initializeDateFormatting("pt_BR");
@@ -169,6 +169,52 @@ class _HomeState extends State<Home> {
     _listarAnotacoes();
   }
 
+  Widget criarItemLista(context, index){
+    final anotacao = _anotacoes[index];
+
+    return Dismissible(
+      child: ListTile(
+        title: Text(anotacao.titulo, style: TextStyle(fontSize: 18),),
+        subtitle: Text("${_formatData(anotacao.data)} - ${anotacao.descricao}") ,
+        trailing: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            GestureDetector(
+                onTap: (){
+                  _cadastro(anotacao: anotacao);
+                },
+                child: Padding(padding: EdgeInsets.only(right: 5),
+                  child: Icon(
+                    Icons.edit,
+                    color: Colors.green,
+                  ),
+                )
+            )
+          ],
+        ),
+      ),
+      key: Key(DateTime.now().millisecondsSinceEpoch.toString()),
+      direction: DismissDirection.endToStart,
+      onDismissed: (direction) {
+        _excluirAnotacao(anotacao.id);
+
+      },
+      background: Container(
+        color: Colors.red,
+        padding: EdgeInsets.all(16),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.end,
+          children: <Widget>[
+            Icon(
+              Icons.delete,
+              color: Colors.white,
+            )
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -177,51 +223,14 @@ class _HomeState extends State<Home> {
         centerTitle: true,
         backgroundColor: Colors.black,
       ),
+
       body: Column(
         children: <Widget>[
           Expanded(
-              child: ListView.builder(
-                  itemCount: _anotacoes.length,
-                  itemBuilder: (context, index){
-
-                    final anotacao = _anotacoes[index];
-
-                    return Card(
-                      child: ListTile(
-                        title: Text(anotacao.titulo, style: TextStyle(fontSize: 18),),
-                        subtitle: Text("${_formatData(anotacao.data)} - ${anotacao.descricao}") ,
-                        //trailing: Text(_formatData(anotacao.data), style: TextStyle(fontSize: 10),),
-                        trailing: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: <Widget>[
-                            GestureDetector(
-                              onTap: (){
-                                _cadastro(anotacao: anotacao );
-                              },
-                              child: Padding(padding: EdgeInsets.only(right: 16),
-                                child: Icon(
-                                  Icons.edit,
-                                  color: Colors.green,
-                                ),),
-                            ),
-                            GestureDetector(
-                              onTap: (){
-                                _confirmarExcluir(anotacao: anotacao);
-                                //_excluirAnotacao(anotacao.id);
-                              },
-                              child: Padding(padding: EdgeInsets.only(right: 0),
-                                child: Icon(
-                                  Icons.delete,
-                                  color: Colors.red,
-                                ),),
-                            )
-                          ],
-                        ),
-
-                      ),
-                    );
-                  }
-              )
+            child: ListView.builder(
+                itemCount: _anotacoes.length,
+                itemBuilder: criarItemLista
+            ),
           )
         ],
       ),
