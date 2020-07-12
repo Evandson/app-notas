@@ -31,7 +31,8 @@ class AnotacaoHelper {
         "id INTEGER PRIMARY KEY AUTOINCREMENT, "
         "titulo VARCHAR, "
         "descricao TEXT, "
-        "data DATETIME)";
+        "data DATETIME,"
+        "status INTEGER)";
     await db.execute(sql);
 
   }
@@ -57,7 +58,16 @@ class AnotacaoHelper {
   listarAnotacoes() async {
 
     var dados = await db;
-    String sql = "SELECT * FROM $tabela ORDER BY data DESC ";
+    String sql = "SELECT * FROM $tabela WHERE status = 0 ORDER BY data DESC ";
+    List anotacoes = await dados.rawQuery( sql );
+    return anotacoes;
+
+  }
+
+  listarAnotacoesLixeira() async {
+
+    var dados = await db;
+    String sql = "SELECT * FROM $tabela WHERE status = 1 ORDER BY data DESC ";
     List anotacoes = await dados.rawQuery( sql );
     return anotacoes;
 

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:minhas_notas/Lixeira.dart';
 import 'package:minhas_notas/helper/AnotacaoHelper.dart';
 import 'package:minhas_notas/model/Anotacao.dart';
 import 'package:intl/intl.dart';
@@ -139,7 +140,7 @@ class _HomeState extends State<Home> {
     String descricao = _descricaoController.text;
 
     if (anotacaoEsc == null) {//salvar
-      Anotacao anotacao = Anotacao(titulo, descricao, DateTime.now().toString() );
+      Anotacao anotacao = Anotacao(titulo, descricao, DateTime.now().toString(), 0);
       int resultado = await _db.salvarAnotacao(anotacao);
     }else{//atualizar
       anotacaoEsc.titulo = titulo;
@@ -155,12 +156,13 @@ class _HomeState extends State<Home> {
 
   }
 
-  _excluirAnotacao(int id) async {
+  _moverAnotacaoParaLixeira ({Anotacao anotacaoEsc}) async{
 
-    await _db.excluirAnotacao(id);
+    int statusAtual = 1;//lixeira
+    anotacaoEsc.status = statusAtual;
+    int resultado = await _db.atulizarAnotacao(anotacaoEsc);
 
     _listarAnotacoes();
-    
   }
 
   @override
@@ -186,22 +188,44 @@ class _HomeState extends State<Home> {
                 child: Padding(padding: EdgeInsets.only(right: 5),
                   child: Icon(
                     Icons.edit,
-                    color: Colors.green,
+                    color: Colors.blue,
                   ),
                 )
             )
           ],
         ),
       ),
+
       key: Key(DateTime.now().millisecondsSinceEpoch.toString()),
-      direction: DismissDirection.endToStart,
+      direction: DismissDirection.horizontal,
       onDismissed: (direction) {
-        _excluirAnotacao(anotacao.id);
+        _moverAnotacaoParaLixeira(anotacaoEsc: anotacao);
+
+        final snackbar = SnackBar(
+          duration: Duration(seconds: 1),
+          content:  Text("Movida para lixeira"),
+        );
+
+        Scaffold.of(context).showSnackBar(snackbar);
 
       },
       background: Container(
         color: Colors.red,
-        padding: EdgeInsets.all(16),
+        padding: EdgeInsets.all(8),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.start,
+          children: <Widget>[
+            Icon(
+              Icons.delete,
+              color: Colors.white,
+            )
+          ],
+        ),
+      ),
+
+      secondaryBackground: Container(
+        color: Colors.red,
+        padding: EdgeInsets.all(8),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.end,
           children: <Widget>[
@@ -215,33 +239,47 @@ class _HomeState extends State<Home> {
     );
   }
 
-  @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text("Anotações"),
-        centerTitle: true,
-        backgroundColor: Colors.black,
-      ),
-
-      body: Column(
-        children: <Widget>[
-          Expanded(
-            child: ListView.builder(
-                itemCount: _anotacoes.length,
-                itemBuilder: criarItemLista
+    return WillPopScope(
+        onWillPop: () async => false,
+        child: Scaffold(
+          appBar: AppBar(
+            backgroundColor: Colors.black,
+            title: Text("Anotações",
+              style:
+              TextStyle(
+                  color: Colors.white
+              ),
             ),
-          )
-        ],
-      ),
-      floatingActionButton: FloatingActionButton(
-          backgroundColor: Colors.black,
-          foregroundColor: Colors.white,
-          child: Icon(Icons.add),
-          onPressed: (){
-            _cadastro();
-          }
-      ),
+            leading: IconButton(
+              icon: Icon(Icons.delete, color: Colors.white,),
+              onPressed: () => Navigator.pushReplacement
+                (context,
+                  MaterialPageRoute
+                    (builder: (context) => Lixeira())),
+            ),
+            centerTitle: true,
+          ),
+          body: Column(
+            children: <Widget>[
+              Expanded(
+                child: ListView.builder(
+                    itemCount: _anotacoes.length,
+                    itemBuilder: criarItemLista
+                ),
+              )
+            ],
+          ),
+
+          floatingActionButton: FloatingActionButton(
+              backgroundColor: Colors.black,
+              foregroundColor: Colors.white,
+              child: Icon(Icons.add),
+              onPressed: (){
+                _cadastro();
+              }
+          ),
+        )
     );
   }
 }
