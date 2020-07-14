@@ -152,7 +152,7 @@ class _LixeiraState extends State<Lixeira> {
         child: Scaffold(
             appBar: AppBar(
               backgroundColor: Colors.black,
-              title: Text("Anotações",
+              title: Text("Lixeira",
                 style:
                 TextStyle(
                     color: Colors.white

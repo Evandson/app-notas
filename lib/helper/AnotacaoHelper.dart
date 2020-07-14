@@ -40,7 +40,7 @@ class AnotacaoHelper {
   inicializarDB() async {
 
     final caminhoBancoDados = await getDatabasesPath();
-    final localBancoDados = join(caminhoBancoDados, "minhas_anotacoes.db");
+    final localBancoDados = join(caminhoBancoDados, "minhas_anotacoes2.db");
 
     var db = await openDatabase(localBancoDados, version: 1, onCreate: _onCreate );
     return db;
@@ -68,6 +68,15 @@ class AnotacaoHelper {
 
     var dados = await db;
     String sql = "SELECT * FROM $tabela WHERE status = 1 ORDER BY data DESC ";
+    List anotacoes = await dados.rawQuery( sql );
+    return anotacoes;
+
+  }
+
+  listarAnotacoesArquivo() async {
+
+    var dados = await db;
+    String sql = "SELECT * FROM $tabela WHERE status = 2 ORDER BY data DESC ";
     List anotacoes = await dados.rawQuery( sql );
     return anotacoes;
 

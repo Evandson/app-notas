@@ -1,17 +1,17 @@
 import 'package:flutter/material.dart';
-import 'package:minhas_notas/Arquivo.dart';
+import 'package:minhas_notas/Home.dart';
 import 'package:minhas_notas/Lixeira.dart';
 import 'package:minhas_notas/helper/AnotacaoHelper.dart';
 import 'package:minhas_notas/model/Anotacao.dart';
 import 'package:intl/intl.dart';
 import 'package:intl/date_symbol_data_local.dart';
 
-class Home extends StatefulWidget {
+class Arquivo extends StatefulWidget {
   @override
-  _HomeState createState() => _HomeState();
+  _ArquivoState createState() => _ArquivoState();
 }
 
-class _HomeState extends State<Home> {
+class _ArquivoState extends State<Arquivo> {
 
   TextEditingController _tituloController = TextEditingController();
   TextEditingController _descricaoController = TextEditingController();
@@ -20,22 +20,15 @@ class _HomeState extends State<Home> {
 
   _cadastro( {Anotacao anotacao} ){
 
-    String texto = "";
-    if(anotacao == null){//salvar
-      _tituloController.text = "";
-      _descricaoController.text = "";
-      texto = "Salvar";
-    }else{//atualizar
       _tituloController.text = anotacao.titulo;
       _descricaoController.text = anotacao.descricao;
-      texto = "Atualizar";
-    }
+
 
     showDialog(
         context: context,
         builder: (context){
           return AlertDialog(
-            title: Text("$texto anotação"),
+            title: Text("Atualizar anotação"),
             content: Column(
               mainAxisSize: MainAxisSize.min,
               children: <Widget>[
@@ -64,44 +57,16 @@ class _HomeState extends State<Home> {
               FlatButton(
                   onPressed: (){
 
-                    _salvarAtualizarAnotacao(anotacaoEsc: anotacao);
+                    _atualizarAnotacao(anotacaoEsc: anotacao);
                     Navigator.pop(context);
                   },
-                  child: Text(texto)
+                  child: Text("Atualizar")
               )
             ],
           );
         }
     );
   }
-
-  /*_confirmarExcluir( {Anotacao anotacao} ){
-    showDialog(
-        context: context,
-        builder: (context){
-          return AlertDialog(
-            title: Text("Deseja excluir anotação?"),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-            ),
-            actions: <Widget>[
-              FlatButton(
-                  onPressed: () => Navigator.pop(context),
-                  child: Text("Cancelar")
-              ),
-              FlatButton(
-                  onPressed: (){
-
-                    _excluirAnotacao(anotacao.id);
-                    Navigator.pop(context);
-                  },
-                  child: Text("Excluir", style: TextStyle(color: Colors.red),)
-              )
-            ],
-          );
-        }
-    );
-  }*/
 
   _formatData(String data){
     initializeDateFormatting("pt_BR");
@@ -116,9 +81,9 @@ class _HomeState extends State<Home> {
 
   }
 
-  _listarAnotacoes() async {
+  _listarAnotacoesArquivo() async {
 
-    List anotacoesListadas = await _db.listarAnotacoes();
+    List anotacoesListadas = await _db.listarAnotacoesArquivo();
 
     List<Anotacao> listaTemp = List<Anotacao>();
     for( var item in anotacoesListadas ){
@@ -135,25 +100,21 @@ class _HomeState extends State<Home> {
 
   }
 
-  _salvarAtualizarAnotacao({Anotacao anotacaoEsc}) async {
+  _atualizarAnotacao({Anotacao anotacaoEsc}) async {
 
     String titulo = _tituloController.text;
     String descricao = _descricaoController.text;
 
-    if (anotacaoEsc == null) {//salvar
-      Anotacao anotacao = Anotacao(titulo, descricao, DateTime.now().toString(), 0);
-      int resultado = await _db.salvarAnotacao(anotacao);
-    }else{//atualizar
-      anotacaoEsc.titulo = titulo;
-      anotacaoEsc.descricao = descricao;
-      anotacaoEsc.data = DateTime.now().toString();
-      int resultado = await _db.atulizarAnotacao(anotacaoEsc);
-    }
+
+    anotacaoEsc.titulo = titulo;
+    anotacaoEsc.descricao = descricao;
+    anotacaoEsc.data = DateTime.now().toString();
+    int resultado = await _db.atulizarAnotacao(anotacaoEsc);
 
     _tituloController.clear();
     _descricaoController.clear();
 
-    _listarAnotacoes();
+    _listarAnotacoesArquivo();
 
   }
 
@@ -163,22 +124,22 @@ class _HomeState extends State<Home> {
     anotacaoEsc.status = statusAtual;
     int resultado = await _db.atulizarAnotacao(anotacaoEsc);
 
-    _listarAnotacoes();
+    _listarAnotacoesArquivo();
   }
 
-  _moverAnotacaoParaArquivo ({Anotacao anotacaoEsc}) async{
+  _restaurarAnotacao ({Anotacao anotacaoEsc}) async{
 
-    int statusAtual = 2;//arquivo
+    int statusAtual = 0;//lixeira
     anotacaoEsc.status = statusAtual;
     int resultado = await _db.atulizarAnotacao(anotacaoEsc);
 
-    _listarAnotacoes();
+    _listarAnotacoesArquivo();
   }
 
   @override
   void initState() {
     super.initState();
-    _listarAnotacoes();
+    _listarAnotacoesArquivo();
   }
 
   Widget criarItemLista(context, index){
@@ -204,19 +165,19 @@ class _HomeState extends State<Home> {
             ),
             GestureDetector(
               onTap: (){
-                _moverAnotacaoParaArquivo(anotacaoEsc:anotacao );
+                _restaurarAnotacao(anotacaoEsc:anotacao );
 
                 final snackbar = SnackBar(
                   duration: Duration(seconds: 1),
-                  content:  Text("Anotação arquivada"),
+                  content:  Text("Anotação desarquivada"),
                 );
 
                 Scaffold.of(context).showSnackBar(snackbar);
               },
               child: Padding(padding: EdgeInsets.only(right: 0),
                 child: Icon(
-                  Icons.archive,
-                  color: Colors.grey,
+                  Icons.unarchive,
+                  color: Colors.green,
                 ),
               ),
             )
@@ -273,29 +234,29 @@ class _HomeState extends State<Home> {
         child: Scaffold(
           appBar: AppBar(
             backgroundColor: Colors.black,
-            title: Text("Anotações",
+            title: Text("Arquivo",
               style:
               TextStyle(
                   color: Colors.white
               ),
             ),
             leading: IconButton(
-              icon: Icon(Icons.delete, color: Colors.white,),
+              icon: Icon(Icons.home, color: Colors.white,),
               onPressed: () => Navigator.pushReplacement
                 (context,
                   MaterialPageRoute
-                    (builder: (context) => Lixeira())),
+                    (builder: (context) => Home())),
             ),
             centerTitle: true,
             actions: <Widget>[
               IconButton(
                 icon: Icon(
-                  Icons.note,
+                  Icons.delete,
                   color: Colors.white,
                 ),
                 onPressed: () => Navigator.pushReplacement
                   (context,
-                    MaterialPageRoute(builder: (context) => Arquivo())),
+                    MaterialPageRoute(builder: (context) => Lixeira())),
               )
             ],
           ),
@@ -308,15 +269,6 @@ class _HomeState extends State<Home> {
                 ),
               )
             ],
-          ),
-
-          floatingActionButton: FloatingActionButton(
-              backgroundColor: Colors.black,
-              foregroundColor: Colors.white,
-              child: Icon(Icons.add),
-              onPressed: (){
-                _cadastro();
-              }
           ),
         )
     );
